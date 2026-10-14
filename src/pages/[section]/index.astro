@@ -1,0 +1,47 @@
+---
+import Base from '@layouts/Base.astro';
+import { cardsFor, sectionIds, sectionMeta, type SectionId } from '@lib/catalog';
+
+export async function getStaticPaths() {
+  return sectionIds.map((section) => ({ params: { section } }));
+}
+
+const section = Astro.params.section as SectionId;
+const meta = sectionMeta[section];
+const cards = await cardsFor(section);
+---
+
+<Base title={meta.title} description={meta.lede} section={section}>
+  <p class="kicker">Section</p>
+  <h1 style="font-size: clamp(2.4rem, 5vw, 3.4rem); margin: 0.2rem 0 0.6rem;">{meta.title}</h1>
+  <p class="lede">{meta.lede}</p>
+  <p class="note">{meta.note}</p>
+  <div class="card-grid" style="margin-top: 1.4rem;">
+    {
+      cards.map((card) => (
+        <article class="card">
+          {card.swatches && (
+            <div class="swatches" aria-hidden="true">
+              {card.swatches.map((hex) => (
+                <span class="swatch" style={`background:${hex}`} />
+              ))}
+            </div>
+          )}
+          <p class="meta">{card.meta}</p>
+          <h3>
+            <a class="title" href={card.href}>
+              {card.title}
+            </a>
+          </h3>
+          <p>{card.summary}</p>
+        </article>
+      ))
+    }
+  </div>
+  {section === 'tools' && (
+    <p class="note" style="margin-top: 1.2rem;">
+      Install commands come from the catalog. The manual’s shell plugins chapter is at{' '}
+      <a href="https://omarchy.org/manual/shell-plugins/">omarchy.org/manual/shell-plugins</a>.
+    </p>
+  )}
+</Base>

@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import { cardsFor, collections, sectionIds, sectionMeta } from '../lib/catalog';
+
+const grouped = await collections();
+const issues = await cardsFor('issues');
+const latest = issues[0];
+const previous = issues[1];
+if (!latest || !previous) throw new Error('Expected two issues');
+
+const counts = sectionIds.map((id) => ({
+  id,
+  title: sectionMeta[id].title,
+  lede: sectionMeta[id].lede,
+  count: grouped[id].length,
+}));
+---
+
+<Base
+  title="Week in Omarchy"
+  description="A static field guide to Omarchy news, releases, themes, setups, fixes, and plugins."
+>
+  <section class="hero">
+    <article class="hero-main">
+      <p class="kicker">Latest issue · {latest.meta}</p>
+      <h1>{latest.title}</h1>
+      <p class="lede">{latest.summary}</p>
+      <p><a class="button" href={latest.href}>Read the issue</a></p>
+    </article>
+    <aside class="hero-side">
+      <p class="kicker">Also filed · {previous.meta}</p>
+      <h2 style="margin: 0.3rem 0; font-size: 1.8rem;">{previous.title}</h2>
+      <p>{previous.summary}</p>
+      <p><a href={previous.href}>Read the release issue</a></p>
+    </aside>
+  </section>
+
+  <section>
+    <p class="kicker">Sections</p>
+    <div class="section-grid">
+      {
+        counts.map((section) => (
+          <a class="card" href={`/${section.id}/`}>
+            <span class="count">{section.count}</span>
+            <h2>{section.title}</h2>
+            <p>{section.lede}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="todo" id="newsletter">
+    <p class="todo-label">Newsletter</p>
+    <h2>Signup is not connected</h2>
+    <p>TODO: wire a newsletter provider. This placeholder does not collect email addresses.</p>
+  </section>
+</Base>

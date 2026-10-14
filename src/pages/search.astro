@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Search" description="Search Week in Omarchy in the browser.">
+  <section class="search-page">
+    <p class="kicker">Search</p>
+    <h1 style="margin: 0.2rem 0;">Search the field guide</h1>
+    <form action="/search/" method="get" role="search">
+      <label class="sr-only" for="search-q">Query</label>
+      <input id="search-q" type="search" name="q" placeholder="Try 4.0.4, Tokyo Night, faillock" />
+    </form>
+    <p id="search-status" class="note">Loading the index…</p>
+    <div id="search-results" class="results"></div>
+  </section>
+  <noscript>
+    <p>Search runs in the browser. The section indexes are linked in the header.</p>
+  </noscript>
+</Base>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('#search-q');
+  const status = document.querySelector<HTMLElement>('#search-status');
+  const results = document.querySelector<HTMLElement>('#search-results');
+
+  type Doc = { title: string; summary: string; href: string; section: string; text: string };
+
+  function render(docs: Doc[], query: string) {
+    if (!status || !results) return;
+    const needle = query.trim().toLowerCase();
+    if (!needle) {
+      status.textContent = 'Type a query. Matching happens in this browser.';
+      results.replaceChildren();
+      return;
+    }
+    const hits = docs.filter((doc) => doc.text.includes(needle)).slice(0, 40);
+    status.textContent = hits.length === 1 ? '1 match' : `${hits.length} matches`;
+    results.replaceChildren(
+      ...hits.map((hit) => {
+        const link = document.createElement('a');
+        link.className = 'result';
+        link.href = hit.href;
+        const section = document.createElement('div');
+        section.className = 'meta';
+        section.textContent = hit.section;
+        const title = document.createElement('strong');
+        title.textContent = hit.title;
+        const summary = document.createElement('p');
+        summary.textContent = hit.summary;
+        link.append(section, title, summary);
+        return link;
+      }),
+    );
+  }
+
+  const initial = new URLSearchParams(location.search).get('q') ?? '';
+  if (input) input.value = initial;
+
+  fetch('/search-index.json')
+    .then((response) => response.json())
+    .then((docs: Doc[]) => {
+      render(docs, initial);
+      input?.addEventListener('input', () => {
+        const next = input.value;
+        const url = new URL(location.href);
+        if (next) url.searchParams.set('q', next);
+        else url.searchParams.delete('q');
+        history.replaceState(null, '', url);
+        render(docs, next);
+      });
+    })
+    .catch(() => {
+      if (status) status.textContent = 'The search index did not load.';
+    });
+</script>
