@@ -1,0 +1,91 @@
+---
+import '../styles/global.css';
+import '@fontsource/newsreader/latin-500.css';
+import '@fontsource/newsreader/latin-600.css';
+import '@fontsource/newsreader/latin-500-italic.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import { sectionIds, sectionMeta, type SectionId } from '../lib/catalog';
+
+interface Props {
+  title: string;
+  description: string;
+  section?: SectionId;
+}
+
+const { title, description, section } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogTitle = title === 'Week in Omarchy' ? title : `${title} · Week in Omarchy`;
+const ogImage = new URL('/og.png', Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{ogTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Week in Omarchy" href="/rss.xml" />
+    <meta property="og:site_name" content="Week in Omarchy" />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <header class="site-header">
+      <div class="shell">
+        <div class="mast">
+          <a class="brand" href="/">
+            <p class="brand-kicker">weekinomarchy.com</p>
+            <p class="brand-title">Week in Omarchy</p>
+          </a>
+          <form class="search" action="/search/" method="get" role="search">
+            <label class="sr-only" for="site-search">Search</label>
+            <input id="site-search" type="search" name="q" placeholder="Search the field guide" />
+            <button type="submit">Search</button>
+          </form>
+        </div>
+        <nav class="nav" aria-label="Sections">
+          {
+            sectionIds.map((id) => (
+              <a href={`/${id}/`} aria-current={section === id ? 'page' : undefined}>
+                {sectionMeta[id].title}
+              </a>
+            ))
+          }
+          <a href="/sponsor/" aria-current={Astro.url.pathname.startsWith('/sponsor') ? 'page' : undefined}>
+            Sponsor
+          </a>
+          <a href="/rss.xml">RSS</a>
+        </nav>
+      </div>
+    </header>
+    <main id="content" class="shell">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="shell">
+        <p>
+          Week in Omarchy cites Omarchy News, the Omarchy manual, GitHub releases, and public repositories.
+          It does not speak for Omarchy or the Omacom Foundation.
+        </p>
+        <p>
+          <a href="/sponsor/">sponsors@weekinomarchy.com</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
