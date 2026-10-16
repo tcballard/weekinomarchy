@@ -1,5 +1,6 @@
 ---
 title: "Miasma"
+gallery: true
 order: 7
 summary: "Miasma is theme 7 in the Omarchy manual gallery and the themes/miasma directory."
 mode: "dark"

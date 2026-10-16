@@ -1,5 +1,6 @@
 ---
 title: "Everforest"
+gallery: true
 order: 5
 summary: "Everforest is theme 5 in the Omarchy manual gallery and the themes/everforest directory."
 mode: "dark"

@@ -1,5 +1,6 @@
 ---
 title: "Nord"
+gallery: true
 order: 11
 summary: "Nord is theme 11 in the Omarchy manual gallery and the themes/nord directory."
 mode: "dark"

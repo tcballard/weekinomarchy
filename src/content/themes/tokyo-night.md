@@ -1,5 +1,6 @@
 ---
 title: "Tokyo Night"
+gallery: true
 order: 1
 summary: "Tokyo Night is theme 1 in the Omarchy manual gallery and the themes/tokyo-night directory."
 mode: "dark"

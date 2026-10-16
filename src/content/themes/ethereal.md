@@ -1,5 +1,6 @@
 ---
 title: "Ethereal"
+gallery: true
 order: 4
 summary: "Ethereal is theme 4 in the Omarchy manual gallery and the themes/ethereal directory."
 mode: "dark"

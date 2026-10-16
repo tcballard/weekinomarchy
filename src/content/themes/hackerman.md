@@ -1,5 +1,6 @@
 ---
 title: "Hackerman"
+gallery: true
 order: 8
 summary: "Hackerman is theme 8 in the Omarchy manual gallery and the themes/hackerman directory."
 mode: "dark"

@@ -1,5 +1,6 @@
 ---
 title: "Gruvbox"
+gallery: true
 order: 6
 summary: "Gruvbox is theme 6 in the Omarchy manual gallery and the themes/gruvbox directory."
 mode: "dark"
