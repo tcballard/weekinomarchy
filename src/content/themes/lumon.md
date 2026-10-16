@@ -1,5 +1,6 @@
 ---
 title: "Lumon"
+gallery: true
 order: 3
 summary: "Lumon is theme 3 in the Omarchy manual gallery and the themes/lumon directory."
 mode: "dark"

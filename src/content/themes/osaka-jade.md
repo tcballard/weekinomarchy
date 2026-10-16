@@ -1,5 +1,6 @@
 ---
 title: "Osaka Jade"
+gallery: true
 order: 9
 summary: "Osaka Jade is theme 9 in the Omarchy manual gallery and the themes/osaka-jade directory."
 mode: "dark"

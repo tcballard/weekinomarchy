@@ -1,5 +1,6 @@
 ---
 title: "Matte Black"
+gallery: true
 order: 12
 summary: "Matte Black is theme 12 in the Omarchy manual gallery and the themes/matte-black directory."
 mode: "dark"
