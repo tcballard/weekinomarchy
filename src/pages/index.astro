@@ -1,58 +1,95 @@
 ---
 import Base from '../layouts/Base.astro';
-import { cardsFor, collections, sectionIds, sectionMeta } from '../lib/catalog';
-
+import ThemeViewer from '../components/ThemeViewer.astro';
+import { cardsFor, collections, sectionMeta } from '../lib/catalog';
 const grouped = await collections();
 const issues = await cardsFor('issues');
 const latest = issues[0];
 const previous = issues[1];
 if (!latest || !previous) throw new Error('Expected two issues');
-
-const counts = sectionIds.map((id) => ({
-  id,
-  title: sectionMeta[id].title,
-  lede: sectionMeta[id].lede,
-  count: grouped[id].length,
-}));
+const descriptions = {
+  issues: 'News from the community, collected in one place.',
+  themes: 'Find a desktop that feels like yours.',
+  tools: 'Useful plugins, with previews and install commands.',
+  setups: 'See how other people make Omarchy their own.',
+  fixes: 'Practical remedies from the Omarchy manual.',
+  releases: 'What changed, where to download, how to update.',
+};
+const order = [
+  'themes',
+  'tools',
+  'issues',
+  'setups',
+  'fixes',
+  'releases',
+] as const;
 ---
 
 <Base
   title="Week in Omarchy"
-  description="A static field guide to Omarchy news, releases, themes, setups, fixes, and plugins."
+  description="News, themes and useful tools for the Omarchy desktop. An independent field guide."
 >
-  <section class="hero">
-    <article class="hero-main">
-      <p class="kicker">Latest issue · {latest.meta}</p>
-      <h1>{latest.title}</h1>
-      <p class="lede">{latest.summary}</p>
-      <p><a class="button" href={latest.href}>Read the issue</a></p>
+  <div class="front-page">
+    <article class="lead-story">
+      <div class="eyebrow-line">
+        <p class="kicker">Latest in the journal</p>
+        <span class="issue-date">{latest.meta}</span>
+      </div>
+      <h1>
+        <a href={latest.href}>{latest.title}</a>
+      </h1>
+      <p class="story-summary">{latest.summary}</p>
+      <a class="text-link" href={latest.href}>
+        Read the issue <span aria-hidden="true">→</span>
+      </a>
+      <div class="previous-story">
+        <span class="kicker">From the archive</span>
+        <a href={previous.href}>
+          {previous.title}
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
     </article>
-    <aside class="hero-side">
-      <p class="kicker">Also filed · {previous.meta}</p>
-      <h2 style="margin: 0.3rem 0; font-size: 1.8rem;">{previous.title}</h2>
-      <p>{previous.summary}</p>
-      <p><a href={previous.href}>Read the release issue</a></p>
-    </aside>
-  </section>
-
-  <section>
-    <p class="kicker">Sections</p>
-    <div class="section-grid">
-      {
-        counts.map((section) => (
-          <a class="card" href={`/${section.id}/`}>
-            <span class="count">{section.count}</span>
-            <h2>{section.title}</h2>
-            <p>{section.lede}</p>
-          </a>
-        ))
-      }
+    <ThemeViewer />
+  </div>
+  <section class="directory" aria-labelledby="directory-title">
+    <div class="section-heading">
+      <div>
+        <p class="kicker">A desktop worth exploring</p>
+        <h2 id="directory-title">Make yourself at home.</h2>
+      </div>
+      <p>
+        The news is only the beginning.
+        <br />
+        Find your way around Omarchy.
+      </p>
+    </div>
+    <div class="directory-grid">
+      {order.map((id, index) => (
+        <a class="directory-entry" href={`/${id}/`}>
+          <span class="directory-number">0{index + 1}</span>
+          <div>
+            <h3>{sectionMeta[id].title}</h3>
+            <p>{descriptions[id]}</p>
+          </div>
+          <span class="directory-count">
+            {grouped[id].length}
+            <span aria-hidden="true">↗</span>
+          </span>
+        </a>
+      ))}
     </div>
   </section>
-
-  <section class="todo" id="newsletter">
-    <p class="todo-label">Newsletter</p>
-    <h2>Signup is not connected</h2>
-    <p>TODO: wire a newsletter provider. This placeholder does not collect email addresses.</p>
+  <section class="follow-strip" id="newsletter">
+    <span class="kicker">Keep in the loop</span>
+    <h2>Read it your way.</h2>
+    <p>
+      Follow the journal by RSS.
+      <br />
+      Email subscriptions aren’t available yet.
+    </p>
+    <a class="text-link" href="/rss.xml">
+      Get the feed <span aria-hidden="true">↗</span>
+    </a>
   </section>
 </Base>

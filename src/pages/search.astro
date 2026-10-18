@@ -2,19 +2,42 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Search" description="Search Week in Omarchy in the browser.">
+<Base
+  title="Search"
+  description="Search news, themes, tools, fixes and releases."
+>
   <section class="search-page">
     <p class="kicker">Search</p>
-    <h1 style="margin: 0.2rem 0;">Search the field guide</h1>
-    <form action="/search/" method="get" role="search">
-      <label class="sr-only" for="search-q">Query</label>
-      <input id="search-q" type="search" name="q" placeholder="Try 4.0.4, Tokyo Night, faillock" />
+    <h1>Find your next useful thing.</h1>
+    <form
+      action="/search/"
+      method="get"
+      role="search"
+      aria-label="Search content"
+    >
+      <label class="sr-only" for="search-q">
+        Query
+      </label>
+      <input
+        id="search-q"
+        type="search"
+        name="q"
+        placeholder="Try 4.0.4, Tokyo Night, faillock"
+      />
+      <button type="submit">Search ↗</button>
     </form>
-    <p id="search-status" class="note">Loading the index…</p>
+    <p id="search-status" class="note" role="status" aria-live="polite">
+      Search themes, tools, releases and commands.
+    </p>
+    <button type="button" id="search-retry" hidden>
+      Try loading search again
+    </button>
     <div id="search-results" class="results"></div>
   </section>
   <noscript>
-    <p>Search runs in the browser. The section indexes are linked in the header.</p>
+    <p>
+      Search runs in the browser. The section indexes are linked in the header.
+    </p>
   </noscript>
 </Base>
 
@@ -23,18 +46,29 @@ import Base from '../layouts/Base.astro';
   const status = document.querySelector<HTMLElement>('#search-status');
   const results = document.querySelector<HTMLElement>('#search-results');
 
-  type Doc = { title: string; summary: string; href: string; section: string; text: string };
+  type Doc = {
+    title: string;
+    summary: string;
+    href: string;
+    section: string;
+    text: string;
+  };
 
   function render(docs: Doc[], query: string) {
     if (!status || !results) return;
     const needle = query.trim().toLowerCase();
     if (!needle) {
-      status.textContent = 'Type a query. Matching happens in this browser.';
+      status.textContent = 'Try a theme name, tool, release or command.';
       results.replaceChildren();
       return;
     }
     const hits = docs.filter((doc) => doc.text.includes(needle)).slice(0, 40);
-    status.textContent = hits.length === 1 ? '1 match' : `${hits.length} matches`;
+    status.textContent =
+      hits.length === 0
+        ? 'No matches. Try a theme name, tool, release or command.'
+        : hits.length === 1
+          ? '1 match'
+          : `${hits.length} matches`;
     results.replaceChildren(
       ...hits.map((hit) => {
         const link = document.createElement('a');
@@ -56,20 +90,35 @@ import Base from '../layouts/Base.astro';
   const initial = new URLSearchParams(location.search).get('q') ?? '';
   if (input) input.value = initial;
 
-  fetch('/search-index.json')
-    .then((response) => response.json())
-    .then((docs: Doc[]) => {
-      render(docs, initial);
-      input?.addEventListener('input', () => {
-        const next = input.value;
-        const url = new URL(location.href);
-        if (next) url.searchParams.set('q', next);
-        else url.searchParams.delete('q');
-        history.replaceState(null, '', url);
-        render(docs, next);
+  function loadIndex() {
+    const retry = document.querySelector<HTMLButtonElement>('#search-retry');
+    if (retry) retry.hidden = true;
+    if (status) status.textContent = 'Loading the index…';
+    fetch('/search-index.json')
+      .then((response) => {
+        if (!response.ok) throw new Error('Search index unavailable');
+        return response.json();
+      })
+      .then((docs: Doc[]) => {
+        render(docs, input?.value ?? initial);
+        input?.addEventListener('input', () => {
+          const next = input.value;
+          const url = new URL(location.href);
+          if (next) url.searchParams.set('q', next);
+          else url.searchParams.delete('q');
+          history.replaceState(null, '', url);
+          render(docs, next);
+        });
+      })
+      .catch(() => {
+        if (status)
+          status.textContent =
+            'Search is unavailable. Try again, or use the section links above to browse.';
+        if (retry) retry.hidden = false;
       });
-    })
-    .catch(() => {
-      if (status) status.textContent = 'The search index did not load.';
-    });
+  }
+  document
+    .querySelector<HTMLButtonElement>('#search-retry')
+    ?.addEventListener('click', loadIndex);
+  loadIndex();
 </script>
