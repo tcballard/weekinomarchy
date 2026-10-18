@@ -17,6 +17,6 @@ npm run build
 
 The build writes `dist/`. Search is a browser filter over `/search-index.json`. RSS is `/rss.xml`. The sitemap is generated from `site` in `astro.config.mjs`.
 
-Content rules are in [AGENTS.md](AGENTS.md). How to add a page is in [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Pages and DNS are in [DEPLOY.md](DEPLOY.md).
+Content rules are in [AGENTS.md](AGENTS.md). How to add a page, including a theme or plugin listing, is in [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Pages and DNS are in [DEPLOY.md](DEPLOY.md).
 
 Sponsorship mail goes to sponsors@weekinomarchy.com. Newsletter signup is a TODO placeholder and does not collect addresses.

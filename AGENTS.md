@@ -23,8 +23,9 @@ The body may only restate those sources.
 
 | Field | Type | Rule |
 | --- | --- | --- |
-| `title` | string | Caption from `manual/06-themes.md`. |
-| `order` | integer | Position in that gallery. |
+| `title` | string | Caption from `manual/06-themes.md`. When that gallery does not caption the directory, the name printed in the cited release notes. |
+| `gallery` | boolean | True when `manual/06-themes.md` captions the theme. |
+| `order` | integer | Position in that gallery. Directories the gallery does not caption follow it, in directory-name order. |
 | `summary` | string | |
 | `mode` | `dark` or `light` | `mode` in `colors.toml`. |
 | `accent`, `background`, `foreground` | `#RRGGBB` | Those keys in `colors.toml`. |
@@ -33,6 +34,7 @@ The body may only restate those sources.
 | `manual` | URL | Themes chapter. |
 | `colors` | URL | `colors.toml`. |
 | `preview` | path | Local copy of `preview.png`, served from `public/`. |
+| `release` | URL, optional | Release notes that name a theme the gallery does not caption. |
 
 ## setups
 
@@ -99,10 +101,12 @@ Commands and paths in the body must match the manual.
 | `installCommand` | string | Catalog `installCommand`. |
 | `verificationStatus` | string | Catalog field. Do not change it. |
 | `catalogGeneratedAt` | ISO-8601 | `generatedAt` of `site/catalog.json`. |
+| `addedAt` | `YYYY-MM-DD` | Catalog `addedAt`. |
 | `tags` | list of strings | Catalog `tags`. |
+| `preview` | path, optional | Local copy of the catalog `previewImage`, when that field is non-empty. Omit the key when the catalog has no preview. |
 
-The current tool set is the 13 installable GitHub listings with a non-empty `installCommand` and the highest `stars` in the catalog generated at `catalogGeneratedAt`. Say so on the page when that rule changes.
+The current tool set is the installable GitHub listings with a non-empty `installCommand` and a `stars` field of at least 40 in the catalog generated at `catalogGeneratedAt`. Equal stars are ordered by name. Say so on the page when that rule changes.
 
 ## Counts the build checks
 
-`src/lib/catalog.ts` fails the build unless the collections contain 2 issues, 15 themes, 5 setups, 11 fixes, 8 releases, and 13 tools. Update `expectedCounts` in the same commit that changes a count, and say why in the commit message.
+`src/lib/catalog.ts` fails the build unless the collections contain 2 issues, 22 themes, 5 setups, 11 fixes, 8 releases, and 45 tools. Update `expectedCounts` in the same commit that changes a count, and say why in the commit message.

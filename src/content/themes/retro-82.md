@@ -1,5 +1,6 @@
 ---
 title: "Retro 82"
+gallery: true
 order: 15
 summary: "Retro 82 is theme 15 in the Omarchy manual gallery and the themes/retro-82 directory."
 mode: "dark"

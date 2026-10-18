@@ -1,5 +1,6 @@
 ---
 title: "Ristretto"
+gallery: true
 order: 14
 summary: "Ristretto is theme 14 in the Omarchy manual gallery and the themes/ristretto directory."
 mode: "dark"

@@ -1,5 +1,6 @@
 ---
 title: "Kanagawa"
+gallery: true
 order: 10
 summary: "Kanagawa is theme 10 in the Omarchy manual gallery and the themes/kanagawa directory."
 mode: "dark"

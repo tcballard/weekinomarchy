@@ -1,5 +1,6 @@
 ---
 title: "Catppuccin"
+gallery: true
 order: 2
 summary: "Catppuccin is theme 2 in the Omarchy manual gallery and the themes/catppuccin directory."
 mode: "dark"

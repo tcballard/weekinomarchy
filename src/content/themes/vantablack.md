@@ -1,5 +1,6 @@
 ---
 title: "Vantablack"
+gallery: true
 order: 13
 summary: "Vantablack is theme 13 in the Omarchy manual gallery and the themes/vantablack directory."
 mode: "dark"

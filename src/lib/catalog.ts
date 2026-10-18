@@ -5,11 +5,11 @@ export type SectionId = (typeof sectionIds)[number];
 
 export const expectedCounts: Record<SectionId, number> = {
   issues: 2,
-  themes: 15,
+  themes: 22,
   setups: 5,
   fixes: 11,
   releases: 8,
-  tools: 13,
+  tools: 45,
 };
 
 export const sectionMeta: Record<
@@ -23,8 +23,8 @@ export const sectionMeta: Record<
   },
   themes: {
     title: 'Themes',
-    lede: 'Fifteen themes from the Omarchy manual gallery and the omacom/omarchy themes directory.',
-    note: 'Shown in the gallery order of manual/06-themes.md on the quattro branch: Tokyo Night through Retro 82. The manual says Omarchy comes with twenty-two themes, and that gallery continues after these fifteen. Colors are mode, accent, background, and foreground from each colors.toml. Previews are that repository’s preview.png files.',
+    lede: 'Twenty-two themes from the Omarchy manual gallery and the quattro themes directory.',
+    note: 'manual/06-themes.md on the quattro branch captions nineteen themes, Tokyo Night through White, and this page keeps that order. The same branch’s themes directory also contains last-horizon, lupine, and solitude. The v4.0.0 release notes name Last Horizon, Solitude, and Lupine, and those three follow the gallery. themes/starship is on that branch with colors.toml and preview.png, but the gallery does not caption it and those notes do not name it, so it is not listed. The manual’s opening line says Omarchy comes with twenty-two themes. Colors are mode, accent, background, and foreground from each colors.toml. Previews are that repository’s preview.png files.',
   },
   setups: {
     title: 'Setups',
@@ -43,8 +43,8 @@ export const sectionMeta: Record<
   },
   tools: {
     title: 'Tools',
-    lede: 'Thirteen plugin repositories from the Omarchy plugin marketplace catalog.',
-    note: 'Taken from omacom/omarchy-plugin-marketplace site/catalog.json generated 2026-10-14T09:07:29.588Z. These are the installable GitHub listings with a non-empty install command and the highest stars field in that file. Descriptions and verification status are the catalog’s. The Omarchy manual says third-party plugins run unsandboxed inside the shell process.',
+    lede: 'Forty-five plugin repositories from the Omarchy plugin marketplace catalog.',
+    note: 'Taken from omacom/omarchy-plugin-marketplace site/catalog.json generated 2026-10-15T23:04:52.187Z. These are the installable GitHub listings with a non-empty install command and a stars field of at least 40. Equal stars are ordered by name. Descriptions, verification status, added dates, and preview images are that file’s. Five listings have no preview image there, so those cards do not show one. “Listed since” keeps entries whose addedAt is on or after the date 30 days before that catalog’s UTC date. The shell plugins chapter says omarchy plugin add tells you that plugins run as arbitrary, unsandboxed code inside the long-lived shell process.',
   },
 };
 
@@ -54,7 +54,24 @@ export type Card = {
   summary: string;
   meta: string;
   swatches?: string[];
+  preview?: { src: string; alt: string };
+  mode?: 'dark' | 'light';
+  gallery?: boolean;
+  category?: string;
+  recent?: boolean;
+  recentSince?: string;
 };
+
+function catalogDay(iso: string) {
+  return iso.slice(0, 10);
+}
+
+function daysBefore(day: string, days: number) {
+  const [year, month, date] = day.split('-').map(Number);
+  const value = new Date(Date.UTC(year, month - 1, date));
+  value.setUTCDate(value.getUTCDate() - days);
+  return value.toISOString().slice(0, 10);
+}
 
 export type Fact = { label: string; value: string; href?: string };
 
@@ -116,8 +133,16 @@ export async function cardsFor(section: SectionId): Promise<Card[]> {
           href: hrefFor('themes', entry.id),
           title: entry.data.title,
           summary: entry.data.summary,
-          meta: entry.data.mode,
+          meta: entry.data.gallery
+            ? `${entry.data.mode} · manual gallery`
+            : `${entry.data.mode} · not captioned in the manual gallery`,
           swatches: [entry.data.background, entry.data.accent, entry.data.foreground],
+          preview: {
+            src: entry.data.preview,
+            alt: `${entry.data.title} preview from omacom/omarchy`,
+          },
+          mode: entry.data.mode,
+          gallery: entry.data.gallery,
         }));
     case 'setups':
       return grouped.setups
@@ -149,7 +174,12 @@ export async function cardsFor(section: SectionId): Promise<Card[]> {
           summary: entry.data.summary,
           meta: formatDate(entry.data.date),
         }));
-    case 'tools':
+    case 'tools': {
+      const generated = new Set(grouped.tools.map((entry) => entry.data.catalogGeneratedAt));
+      if (generated.size !== 1) {
+        throw new Error('Tool listings must share one catalogGeneratedAt');
+      }
+      const recentSince = daysBefore(catalogDay([...generated][0]), 30);
       return grouped.tools
         .slice()
         .sort((a, b) => a.data.order - b.data.order)
@@ -157,8 +187,18 @@ export async function cardsFor(section: SectionId): Promise<Card[]> {
           href: hrefFor('tools', entry.id),
           title: entry.data.title,
           summary: entry.data.summary,
-          meta: `${entry.data.stars} catalog stars · ${entry.data.verificationStatus}`,
+          meta: `#${entry.data.order} · ${entry.data.category} · ${entry.data.stars} catalog stars · ${entry.data.verificationStatus}`,
+          preview: entry.data.preview
+            ? {
+                src: entry.data.preview,
+                alt: `${entry.data.title} preview from the Omarchy plugin marketplace catalog`,
+              }
+            : undefined,
+          category: entry.data.category,
+          recent: entry.data.addedAt >= recentSince,
+          recentSince,
         }));
+    }
   }
 }
 
@@ -188,17 +228,31 @@ export async function loadEntry(section: SectionId, id: string) {
       const entry = await getEntry('themes', id);
       if (!entry) return undefined;
       const rendered = await render(entry);
+      const facts: Fact[] = [
+        { label: 'Directory', value: entry.data.directory, href: entry.data.repo },
+        { label: 'colors.toml', value: 'quattro branch', href: entry.data.colors },
+        { label: 'Manual', value: 'Themes', href: entry.data.manual },
+        { label: 'Mode', value: entry.data.mode },
+        {
+          label: 'Gallery caption',
+          value: entry.data.gallery ? `Theme ${entry.data.order}` : 'Not in manual/06-themes.md',
+        },
+      ];
+      if (entry.data.release) {
+        facts.push({
+          label: 'Release notes',
+          value: entry.data.release.split('/').pop() ?? entry.data.release,
+          href: entry.data.release,
+        });
+      }
       return {
         title: entry.data.title,
         description: entry.data.summary,
-        meta: `Theme ${entry.data.order} in the manual gallery`,
+        meta: entry.data.gallery
+          ? `Theme ${entry.data.order} in the manual gallery`
+          : 'In the quattro themes directory, not captioned in the manual gallery',
         Content: rendered.Content,
-        facts: [
-          { label: 'Directory', value: entry.data.directory, href: entry.data.repo },
-          { label: 'colors.toml', value: 'quattro branch', href: entry.data.colors },
-          { label: 'Manual', value: 'Themes', href: entry.data.manual },
-          { label: 'Mode', value: entry.data.mode },
-        ],
+        facts,
         swatches: [
           { name: 'background', hex: entry.data.background },
           { name: 'accent', hex: entry.data.accent },
@@ -292,10 +346,21 @@ export async function loadEntry(section: SectionId, id: string) {
           { label: 'License', value: entry.data.license },
           { label: 'Verification', value: entry.data.verificationStatus },
           { label: 'Catalog generated', value: entry.data.catalogGeneratedAt },
+          {
+            label: 'Catalog source',
+            value: 'omacom/omarchy-plugin-marketplace',
+            href: 'https://github.com/omacom/omarchy-plugin-marketplace/blob/975b68ab8fad3792d829e79ae6769c7fd1347721/site/catalog.json',
+          },
+          { label: 'Added', value: entry.data.addedAt },
           { label: 'Tags', value: entry.data.tags.join(', ') },
         ],
         swatches: [],
-        preview: null,
+        preview: entry.data.preview
+          ? {
+              src: entry.data.preview,
+              alt: `${entry.data.title} preview from the Omarchy plugin marketplace catalog`,
+            }
+          : null,
         command: entry.data.installCommand,
         body: entry.body ?? '',
       };
