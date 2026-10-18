@@ -1,6 +1,11 @@
 ---
 import Base from '@layouts/Base.astro';
-import { loadEntry, sectionIds, sectionMeta, type SectionId } from '@lib/catalog';
+import {
+  loadEntry,
+  sectionIds,
+  sectionMeta,
+  type SectionId,
+} from '@lib/catalog';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -30,39 +35,96 @@ const meta = sectionMeta[section];
 ---
 
 <Base title={view.title} description={view.description} section={section}>
-  <p class="back">
-    <a href={`/${section}/`}>{meta.title}</a>
-  </p>
-  <p class="kicker">{view.meta}</p>
-  <h1 style="font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1; margin: 0.25rem 0 0.8rem;">
-    {view.title}
-  </h1>
-  <p class="lede">{view.description}</p>
-  {
-    view.swatches.length > 0 && (
-      <div class="color-row">
-        {view.swatches.map((swatch) => (
-          <span class="color-chip">
-            <span class="swatch" style={`background:${swatch.hex}`} />
-            {swatch.name} {swatch.hex}
-          </span>
+  <header class="entry-header">
+    <a class="back" href={`/${section}/`}>
+      ← All {meta.title.toLowerCase()}
+    </a>
+    <p class="kicker">{view.meta}</p>
+    <h1>{view.title}</h1>
+    <p class="lede">{view.description}</p>
+  </header>
+  <div class="entry-layout">
+    <div class="entry-main">
+      {view.preview && (
+        <img
+          class="preview"
+          src={view.preview.src}
+          alt={view.preview.alt}
+          width="1600"
+          height="900"
+        />
+      )}
+      {view.swatches.length > 0 && (
+        <div class="color-row">
+          {view.swatches.map((swatch) => (
+            <span class="color-chip">
+              <span class="swatch" style={`background:${swatch.hex}`} />
+              {swatch.name}
+              <strong>{swatch.hex}</strong>
+            </span>
+          ))}
+        </div>
+      )}
+      {view.command && (
+        <section class="install-block" aria-labelledby="install-title">
+          <div class="eyebrow-line">
+            <h2 class="kicker" id="install-title">
+              Install command
+            </h2>
+            <button type="button" data-copy-command hidden>
+              Copy command
+            </button>
+          </div>
+          <code class="command" data-command>
+            {view.command}
+          </code>
+          <p class="copy-status" role="status" data-copy-status></p>
+          <p class="note">
+            Third-party plugins run unsandboxed.{' '}
+            <a href="https://omarchy.org/manual/shell-plugins/">
+              Read the manual before installing.
+            </a>
+          </p>
+        </section>
+      )}
+      <article class="prose">
+        <Content />
+      </article>
+    </div>
+    <aside class="entry-aside" aria-label="Entry details and sources">
+      <h2 class="kicker">Details & sources</h2>
+      <dl class="facts">
+        {view.facts.map((fact) => (
+          <div>
+            <dt>{fact.label}</dt>
+            <dd>
+              {fact.href ? (
+                <a href={fact.href}>
+                  {fact.value} <span aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                fact.value
+              )}
+            </dd>
+          </div>
         ))}
-      </div>
-    )
-  }
-  {view.preview && <img class="preview" src={view.preview.src} alt={view.preview.alt} />}
-  {view.command && <code class="command">{view.command}</code>}
-  <dl class="facts">
-    {
-      view.facts.map((fact) => (
-        <>
-          <dt>{fact.label}</dt>
-          <dd>{fact.href ? <a href={fact.href}>{fact.value}</a> : fact.value}</dd>
-        </>
-      ))
-    }
-  </dl>
-  <article class="prose">
-    <Content />
-  </article>
+      </dl>
+    </aside>
+  </div>
 </Base>
+<script>
+  const copy = document.querySelector<HTMLButtonElement>('[data-copy-command]');
+  if (copy) copy.hidden = false;
+  copy?.addEventListener('click', async () => {
+    const command = document.querySelector<HTMLElement>('[data-command]');
+    const status = document.querySelector<HTMLElement>('[data-copy-status]');
+    if (!command || !status) return;
+    try {
+      await navigator.clipboard.writeText(command.textContent ?? '');
+      status.textContent = 'Command copied.';
+    } catch {
+      status.textContent =
+        'Copy is unavailable. Select the command above and copy it manually.';
+    }
+  });
+</script>

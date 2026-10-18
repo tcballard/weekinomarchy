@@ -1,6 +1,11 @@
 ---
 import Base from '@layouts/Base.astro';
-import { cardsFor, sectionIds, sectionMeta, type SectionId } from '@lib/catalog';
+import {
+  cardsFor,
+  sectionIds,
+  sectionMeta,
+  type SectionId,
+} from '@lib/catalog';
 
 export async function getStaticPaths() {
   return sectionIds.map((section) => ({ params: { section } }));
@@ -10,155 +15,238 @@ const section = Astro.params.section as SectionId;
 const meta = sectionMeta[section];
 const cards = await cardsFor(section);
 const filterable = section === 'themes' || section === 'tools';
-const categories = [...new Set(cards.flatMap((card) => (card.category ? [card.category] : [])))].sort((a, b) =>
-  a.localeCompare(b),
-);
+const categories = [
+  ...new Set(cards.flatMap((card) => (card.category ? [card.category] : []))),
+].sort((a, b) => a.localeCompare(b));
 const recentSince = cards.find((card) => card.recentSince)?.recentSince;
 ---
 
 <Base title={meta.title} description={meta.lede} section={section}>
-  <p class="kicker">Section</p>
-  <h1 style="font-size: clamp(2.4rem, 5vw, 3.4rem); margin: 0.2rem 0 0.6rem;">{meta.title}</h1>
-  <p class="lede">{meta.lede}</p>
-  <p class="note">{meta.note}</p>
-  {
-    filterable && (
-      <div class="filters" data-filters>
-        {section === 'themes' && (
-          <>
-            <div class="filter-row" role="group" aria-label="Mode">
-              <button type="button" data-key="mode" data-value="all" aria-pressed="true">
-                All modes
-              </button>
-              <button type="button" data-key="mode" data-value="dark">
-                Dark
-              </button>
-              <button type="button" data-key="mode" data-value="light">
-                Light
-              </button>
-            </div>
-            <div class="filter-row" role="group" aria-label="Source">
-              <button type="button" data-key="gallery" data-value="all" aria-pressed="true">
-                All listed themes
-              </button>
-              <button type="button" data-key="gallery" data-value="true">
-                Manual gallery
-              </button>
-              <button type="button" data-key="gallery" data-value="false">
-                Not captioned
-              </button>
-            </div>
-          </>
-        )}
-        {section === 'tools' && (
-          <>
-            <div class="filter-row" role="group" aria-label="Category">
-              <button type="button" data-key="category" data-value="all" aria-pressed="true">
-                All categories
-              </button>
+  <header class="section-intro">
+    <p class="kicker">
+      The field guide /{' '}
+      {String(sectionIds.indexOf(section) + 1).padStart(2, '0')}
+    </p>
+    <h1>
+      {meta.title}
+      <span class="section-total">{cards.length}</span>
+    </h1>
+    <p class="lede">{meta.lede}</p>
+    <details class="source-note">
+      <summary>About this collection & its sources</summary>
+      <p>{meta.note}</p>
+    </details>
+  </header>
+  {filterable && (
+    <div class="filters" hidden data-filters>
+      {section === 'themes' && (
+        <>
+          <div class="filter-row" role="group" aria-label="Mode">
+            <button
+              type="button"
+              data-key="mode"
+              data-value="all"
+              aria-pressed="true"
+            >
+              All modes
+            </button>
+            <button type="button" data-key="mode" data-value="dark">
+              Dark
+            </button>
+            <button type="button" data-key="mode" data-value="light">
+              Light
+            </button>
+          </div>
+          <div class="filter-row" role="group" aria-label="Source">
+            <button
+              type="button"
+              data-key="gallery"
+              data-value="all"
+              aria-pressed="true"
+            >
+              All listed themes
+            </button>
+            <button type="button" data-key="gallery" data-value="true">
+              Manual gallery
+            </button>
+            <button type="button" data-key="gallery" data-value="false">
+              Not captioned
+            </button>
+          </div>
+        </>
+      )}
+      <p class="empty-collection" data-empty hidden>
+        No listings match these filters.{' '}
+        <button type="button" data-reset>
+          Reset filters
+        </button>
+      </p>
+      {section === 'tools' && (
+        <>
+          <label class="category-filter">
+            Category
+            <select data-category-filter>
+              <option value="all">All categories</option>
               {categories.map((category) => (
-                <button type="button" data-key="category" data-value={category}>
-                  {category}
-                </button>
+                <option value={category}>{category}</option>
               ))}
+            </select>
+          </label>
+          {recentSince && (
+            <div class="filter-row" role="group" aria-label="Listed date">
+              <button
+                type="button"
+                data-key="recent"
+                data-value="all"
+                aria-pressed="true"
+              >
+                Any listed date
+              </button>
+              <button type="button" data-key="recent" data-value="true">
+                Listed since {recentSince}
+              </button>
             </div>
-            {recentSince && (
-              <div class="filter-row" role="group" aria-label="Listed date">
-                <button type="button" data-key="recent" data-value="all" aria-pressed="true">
-                  Any listed date
-                </button>
-                <button type="button" data-key="recent" data-value="true">
-                  Listed since {recentSince}
-                </button>
-              </div>
-            )}
-          </>
+          )}
+        </>
+      )}
+      <p
+        id="filter-status"
+        class="note"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        Filters run in this browser.
+      </p>
+    </div>
+  )}
+  <div
+    class:list={[
+      'card-grid',
+      { 'listing-list': !filterable, 'theme-grid': section === 'themes' },
+    ]}
+    id="collection"
+  >
+    {cards.map((card) => (
+      <article
+        class="card"
+        data-card
+        data-mode={card.mode}
+        data-gallery={
+          card.gallery === undefined ? undefined : String(card.gallery)
+        }
+        data-category={card.category}
+        data-recent={
+          card.recent === undefined ? undefined : String(card.recent)
+        }
+      >
+        {card.preview && (
+          <a class="card-shot" href={card.href}>
+            <img
+              src={card.preview.src}
+              alt={card.preview.alt}
+              loading="lazy"
+              decoding="async"
+              width="1600"
+              height="900"
+            />
+            <span class="image-failure" hidden>
+              Preview unavailable — open {card.title}
+            </span>
+          </a>
         )}
-        <p id="filter-status" class="note" role="status" aria-live="polite" aria-atomic="true">
-          Filters run in this browser.
-        </p>
-      </div>
-    )
-  }
-  <div class="card-grid" style="margin-top: 1.4rem;">
-    {
-      cards.map((card) => (
-        <article
-          class="card"
-          data-card
-          data-mode={card.mode}
-          data-gallery={card.gallery === undefined ? undefined : String(card.gallery)}
-          data-category={card.category}
-          data-recent={card.recent === undefined ? undefined : String(card.recent)}
-        >
-          {card.preview && (
-            <a class="card-shot" href={card.href}>
-              <img src={card.preview.src} alt={card.preview.alt} loading="lazy" decoding="async" width="1600" height="900" />
-            </a>
-          )}
-          {card.swatches && (
-            <div class="swatches" aria-hidden="true">
-              {card.swatches.map((hex) => (
-                <span class="swatch" style={`background:${hex}`} />
-              ))}
-            </div>
-          )}
-          <p class="meta">{card.meta}</p>
-          <h3>
-            <a class="title" href={card.href}>
-              {card.title}
-            </a>
-          </h3>
-          <p class="summary">{card.summary}</p>
-        </article>
-      ))
-    }
+        {!card.preview && filterable && (
+          <a class="preview-missing" href={card.href}>
+            <span aria-hidden="true">
+              {card.title.slice(0, 2).toUpperCase()}
+            </span>
+            <small>No preview supplied</small>
+          </a>
+        )}
+        {card.swatches && (
+          <div class="swatches" aria-hidden="true">
+            {card.swatches.map((hex) => (
+              <span class="swatch" style={`background:${hex}`} />
+            ))}
+          </div>
+        )}
+        <p class="meta">{card.meta}</p>
+        <h2>
+          <a class="title" href={card.href}>
+            {card.title}
+          </a>
+        </h2>
+        {section !== 'themes' && <p class="summary">{card.summary}</p>}
+      </article>
+    ))}
   </div>
   {section === 'tools' && (
-    <p class="note" style="margin-top: 1.2rem;">
-      Install commands come from the catalog. The manual’s shell plugins chapter is at{' '}
-      <a href="https://omarchy.org/manual/shell-plugins/">omarchy.org/manual/shell-plugins</a>.
+    <p class="collection-footnote">
+      Install commands come from the catalog. The manual’s shell plugins chapter
+      is at{' '}
+      <a href="https://omarchy.org/manual/shell-plugins/">
+        omarchy.org/manual/shell-plugins
+      </a>
+      .
     </p>
   )}
-  {
-    filterable && (
-      <p class="note">Preview images are copied from the cited upstream repositories. <a href="/asset-notices.txt">Asset sources and licence notices</a>.</p>
-    )
-  }
-  {
-    filterable && (
-      <noscript>
-        <p class="note">Every listing is shown above. The filters need JavaScript.</p>
-      </noscript>
-    )
-  }
+  {filterable && (
+    <p class="collection-footnote">
+      Preview images are copied from the cited upstream repositories.{' '}
+      <a href="/asset-notices.txt">Asset sources and licence notices</a>.
+    </p>
+  )}
+  {filterable && (
+    <noscript>
+      <p class="note">
+        Every listing is shown above. The filters need JavaScript.
+      </p>
+    </noscript>
+  )}
   <script>
     const root = document.querySelector<HTMLElement>('[data-filters]');
     if (root) {
+      root.hidden = false;
       const status = document.querySelector<HTMLElement>('#filter-status');
-      const buttons = [...root.querySelectorAll<HTMLButtonElement>('button[data-key]')];
+      const buttons = [
+        ...root.querySelectorAll<HTMLButtonElement>('button[data-key]'),
+      ];
       const cards = [...document.querySelectorAll<HTMLElement>('[data-card]')];
       const selected = new Map<string, string>();
+      const category = root.querySelector<HTMLSelectElement>(
+        '[data-category-filter]',
+      );
+      const empty = document.querySelector<HTMLElement>('[data-empty]');
+      const reset = document.querySelector<HTMLButtonElement>('[data-reset]');
 
       function apply() {
         let shown = 0;
         for (const card of cards) {
           let ok = true;
           for (const [key, value] of selected) {
-            if (value !== 'all' && card.getAttribute(`data-${key}`) !== value) ok = false;
+            if (value !== 'all' && card.getAttribute(`data-${key}`) !== value)
+              ok = false;
           }
           card.hidden = !ok;
           if (ok) shown += 1;
         }
+        if (empty) empty.hidden = shown > 0;
         if (status) {
           status.textContent =
-            shown === cards.length ? `Showing all ${cards.length}` : `Showing ${shown} of ${cards.length}`;
+            shown === cards.length
+              ? `Showing all ${cards.length}`
+              : `Showing ${shown} of ${cards.length}`;
         }
       }
 
       for (const button of buttons) {
-        if (!button.hasAttribute('aria-pressed')) button.setAttribute('aria-pressed', 'false');
-        if (button.getAttribute('aria-pressed') === 'true' && button.dataset.key && button.dataset.value) {
+        if (!button.hasAttribute('aria-pressed'))
+          button.setAttribute('aria-pressed', 'false');
+        if (
+          button.getAttribute('aria-pressed') === 'true' &&
+          button.dataset.key &&
+          button.dataset.value
+        ) {
           selected.set(button.dataset.key, button.dataset.value);
         }
       }
@@ -169,14 +257,41 @@ const recentSince = cards.find((card) => card.recentSince)?.recentSince;
           const value = button.dataset.value;
           if (!key || !value) return;
           for (const other of buttons) {
-            if (other.dataset.key === key) other.setAttribute('aria-pressed', other === button ? 'true' : 'false');
+            if (other.dataset.key === key)
+              other.setAttribute(
+                'aria-pressed',
+                other === button ? 'true' : 'false',
+              );
           }
           selected.set(key, value);
           apply();
         });
       }
 
+      category?.addEventListener('change', () => {
+        selected.set('category', category.value);
+        apply();
+      });
+      reset?.addEventListener('click', () => {
+        selected.clear();
+        for (const button of buttons)
+          button.setAttribute(
+            'aria-pressed',
+            String(button.dataset.value === 'all'),
+          );
+        if (category) category.value = 'all';
+        apply();
+      });
       apply();
+    }
+    for (const image of document.querySelectorAll<HTMLImageElement>(
+      '.card-shot img',
+    )) {
+      image.addEventListener('error', () => {
+        image.hidden = true;
+        const fallback = image.nextElementSibling as HTMLElement | null;
+        if (fallback) fallback.hidden = false;
+      });
     }
   </script>
 </Base>

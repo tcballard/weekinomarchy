@@ -1,0 +1,127 @@
+---
+import { cardsFor } from '../lib/catalog';
+const themes = await cardsFor('themes');
+const first = themes[0];
+if (!first?.preview) throw new Error('Theme viewer needs a preview');
+---
+
+<section
+  class="desktop-viewer"
+  aria-labelledby="desktop-title"
+  data-theme-viewer
+>
+  <div class="eyebrow-line">
+    <h2 id="desktop-title" class="kicker">
+      The desktop, in colour
+    </h2>
+    <a href="/themes/">
+      {themes.length} themes <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+  <a class="desktop-screen" href={first.href} data-theme-link>
+    <img
+      src={first.preview.src}
+      alt={first.preview.alt}
+      width="1600"
+      height="900"
+      fetchpriority="high"
+      data-theme-image
+    />
+    <span class="screen-prompt">
+      Explore this theme <span aria-hidden="true">↗</span>
+    </span>
+  </a>
+  <div class="desktop-caption">
+    <div>
+      <span class="kicker">On screen</span>
+      <a href={first.href} data-theme-name>
+        {first.title}
+      </a>
+    </div>
+    <span class="mono" data-theme-mode>
+      {first.mode}
+    </span>
+  </div>
+  <div
+    class="theme-rail"
+    hidden
+    role="group"
+    aria-label="Preview a desktop theme"
+  >
+    {themes.map((theme, index) => (
+      <button
+        type="button"
+        aria-pressed={index === 0 ? 'true' : 'false'}
+        aria-label={`Preview ${theme.title}`}
+        title={theme.title}
+        data-theme-choice
+        data-src={theme.preview?.src}
+        data-alt={theme.preview?.alt}
+        data-href={theme.href}
+        data-title={theme.title}
+        data-mode={theme.mode}
+        style={`--theme-bg:${theme.swatches?.[0]};--theme-accent:${theme.swatches?.[1]};--theme-fg:${theme.swatches?.[2]}`}
+      >
+        <span class="theme-sample" aria-hidden="true">
+          <i></i>
+          <i></i>
+          <i></i>
+        </span>
+      </button>
+    ))}
+  </div>
+  <p class="viewer-status" role="status" aria-live="polite" data-theme-status>
+    Choose a palette to preview the desktop.
+  </p>
+  <noscript>
+    <p class="note">
+      Browse all previews in the <a href="/themes/">theme directory</a>.
+    </p>
+  </noscript>
+</section>
+<script>
+  const viewer = document.querySelector<HTMLElement>('[data-theme-viewer]');
+  if (viewer) {
+    const image = viewer.querySelector<HTMLImageElement>('[data-theme-image]');
+    const name = viewer.querySelector<HTMLAnchorElement>('[data-theme-name]');
+    const link = viewer.querySelector<HTMLAnchorElement>('[data-theme-link]');
+    const mode = viewer.querySelector<HTMLElement>('[data-theme-mode]');
+    const status = viewer.querySelector<HTMLElement>('[data-theme-status]');
+    const choices = [
+      ...viewer.querySelectorAll<HTMLButtonElement>('[data-theme-choice]'),
+    ];
+    const rail = viewer.querySelector<HTMLElement>('.theme-rail');
+    if (rail) rail.hidden = false;
+    let request = 0;
+    for (const choice of choices) {
+      choice.addEventListener('click', () => {
+        const { src, alt, href, title, mode: themeMode } = choice.dataset;
+        if (!src || !href || !title || !image || !name || !link || !status)
+          return;
+        const current = ++request;
+        viewer.setAttribute('aria-busy', 'true');
+        status.textContent = `Loading ${title}…`;
+        const preview = new Image();
+        preview.onload = () => {
+          if (current !== request) return;
+          image.src = src;
+          image.alt = alt ?? title;
+          name.textContent = title;
+          name.href = href;
+          link.href = href;
+          if (mode) mode.textContent = themeMode ?? '';
+          for (const item of choices)
+            item.setAttribute('aria-pressed', String(item === choice));
+          viewer.removeAttribute('aria-busy');
+          status.textContent = `${title} selected. Open the preview for colours and sources.`;
+        };
+        preview.onerror = () => {
+          if (current !== request) return;
+          viewer.removeAttribute('aria-busy');
+          status.textContent = `${title} could not load. Try again or browse the theme directory.`;
+        };
+        preview.src = src;
+      });
+    }
+  }
+</script>
