@@ -74,7 +74,7 @@ const recentSince = cards.find((card) => card.recentSince)?.recentSince;
             )}
           </>
         )}
-        <p id="filter-status" class="note">
+        <p id="filter-status" class="note" role="status" aria-live="polite" aria-atomic="true">
           Filters run in this browser.
         </p>
       </div>
@@ -93,7 +93,7 @@ const recentSince = cards.find((card) => card.recentSince)?.recentSince;
         >
           {card.preview && (
             <a class="card-shot" href={card.href}>
-              <img src={card.preview.src} alt={card.preview.alt} />
+              <img src={card.preview.src} alt={card.preview.alt} loading="lazy" decoding="async" width="1600" height="900" />
             </a>
           )}
           {card.swatches && (
@@ -120,6 +120,11 @@ const recentSince = cards.find((card) => card.recentSince)?.recentSince;
       <a href="https://omarchy.org/manual/shell-plugins/">omarchy.org/manual/shell-plugins</a>.
     </p>
   )}
+  {
+    filterable && (
+      <p class="note">Preview images are copied from the cited upstream repositories. <a href="/asset-notices.txt">Asset sources and licence notices</a>.</p>
+    )
+  }
   {
     filterable && (
       <noscript>
@@ -152,6 +157,7 @@ const recentSince = cards.find((card) => card.recentSince)?.recentSince;
       }
 
       for (const button of buttons) {
+        if (!button.hasAttribute('aria-pressed')) button.setAttribute('aria-pressed', 'false');
         if (button.getAttribute('aria-pressed') === 'true' && button.dataset.key && button.dataset.value) {
           selected.set(button.dataset.key, button.dataset.value);
         }

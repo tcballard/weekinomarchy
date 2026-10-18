@@ -119,7 +119,7 @@ main { padding: 2rem 0 4rem; }
   color: var(--fg-dim);
 }
 h1, h2, h3 { font-family: var(--serif); font-weight: 500; color: var(--fg-bright); letter-spacing: -0.02em; }
-.lede { font-family: var(--serif); font-size: 1.35rem; line-height: 1.35; color: var(--fg-bright); max-width: 40ch; }
+.lede { font-family: var(--serif); font-size: 1.35rem; line-height: 1.35; color: var(--fg-bright); max-width: 40ch; overflow-wrap: anywhere; }
 .note {
   color: var(--fg-dim);
   max-width: 75ch;
@@ -151,7 +151,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; color: var(--fg-bright
   grid-template-columns: repeat(3, 1fr);
   gap: 0.9rem;
 }
-.card { padding: 1rem 1.05rem 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.card { padding: 1rem 1.05rem 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; overflow-wrap: anywhere; }
 .card[hidden] { display: none; }
 .card h2, .card h3 { margin: 0; font-size: 1.45rem; }
 .card a.title { color: var(--fg-bright); text-decoration: none; }
@@ -198,7 +198,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; color: var(--fg-bright
 .swatch { width: 1.15rem; height: 1.15rem; border-radius: 50%; border: 1px solid var(--line); }
 .preview { border-radius: 12px; border: 1px solid var(--line); margin: 1rem 0; }
 
-.prose { max-width: var(--measure); }
+.prose { max-width: var(--measure); overflow-wrap: anywhere; }
 .prose h2 { font-size: 1.7rem; margin: 1.6rem 0 0.4rem; }
 .prose h3 { font-size: 1.3rem; }
 .prose p, .prose li { color: var(--fg); }
@@ -219,9 +219,9 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; color: var(--fg-bright
   color: var(--fg-bright);
 }
 .prose pre code { background: none; padding: 0; }
-.facts { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; margin: 1rem 0 1.4rem; }
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.35rem 1rem; margin: 1rem 0 1.4rem; }
 .facts dt { margin: 0; }
-.facts dd { margin: 0; color: var(--fg-bright); }
+.facts dd { margin: 0; color: var(--fg-bright); overflow-wrap: anywhere; }
 .color-row { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0.8rem 0 1rem; }
 .color-chip { display: flex; align-items: center; gap: 0.45rem; font-family: var(--mono); font-size: 0.82rem; }
 .back { font-family: var(--mono); font-size: 0.8rem; }

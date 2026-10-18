@@ -25,6 +25,8 @@ A theme needs a directory under `themes/` on the quattro branch of omacom/omarch
 
 A tool needs an entry in `site/catalog.json` of omacom/omarchy-plugin-marketplace. Copy `name`, `description`, `id`, `author`, `version`, `category`, `kind`, `repo`, `stars`, `license`, `installCommand`, `verificationStatus`, `addedAt`, and `tags` unchanged, and set `catalogGeneratedAt` to that file’s `generatedAt`. The page’s set is every installable GitHub listing in that file with a non-empty install command and at least 40 stars. Copy `previewImage` into `public/tools/` only when the catalog entry has one. Rank `order` by stars descending, then by name.
 
+When refreshing the tool catalog, update the pinned catalog source link in `src/lib/catalog.ts` and the source revision in `public/asset-notices.txt` to match `catalogGeneratedAt`. Retain upstream licence notices when copying images or catalog content.
+
 ## What not to add
 
 - A star count, date, or checksum you did not read from the source on the day you record in `fetchedAt` or `catalogGeneratedAt`.

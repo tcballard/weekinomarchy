@@ -346,6 +346,11 @@ export async function loadEntry(section: SectionId, id: string) {
           { label: 'License', value: entry.data.license },
           { label: 'Verification', value: entry.data.verificationStatus },
           { label: 'Catalog generated', value: entry.data.catalogGeneratedAt },
+          {
+            label: 'Catalog source',
+            value: 'omacom/omarchy-plugin-marketplace',
+            href: 'https://github.com/omacom/omarchy-plugin-marketplace/blob/975b68ab8fad3792d829e79ae6769c7fd1347721/site/catalog.json',
+          },
           { label: 'Added', value: entry.data.addedAt },
           { label: 'Tags', value: entry.data.tags.join(', ') },
         ],
